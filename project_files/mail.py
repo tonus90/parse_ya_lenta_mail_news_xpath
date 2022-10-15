@@ -11,7 +11,7 @@ url = 'https://news.mail.ru/'
 response = requests.get(url, headers=header)
 
 dom = html.fromstring(response.text)
-block_news = dom.xpath('//li[@class="list__item"]/a[@class = "list__text"]/@href')
+block_news = dom.xpath('//a[@class="photo photo_full photo_scale js-topnews__item"]//@href | //a[@class="photo photo_small photo_scale photo_full js-topnews__item"]//@href')
 
 
 client = MongoClient('localhost', 27017)
@@ -32,9 +32,7 @@ def get_datetime(time):
     return date_res
 
 def name_corrector(name):
-    a = name.replace(u'\xa0', ' ')
-    print(1)
-    return a
+    return name.replace(u'\xa0', ' ')
 
 for url_news in block_news:
     response_news = requests.get(url_news, headers=header)
@@ -43,21 +41,14 @@ for url_news in block_news:
     name = dom_news.xpath('.//h1/text()')[0]
     date_time = dom_news.xpath('.//span[@class="note"]//@datetime')[0]
     # date = datetime.datetime.strptime(date_time, '%Y%m%d').date()
-    """
-    Вот тут вопросик, сюда по сути дата попадает в нужном формате в таком виде: "2021-03-18T15:49:19+03:00", но
-    тип данных сринг, как можно быстро преобразовать такую строку в datetime не распарсивая, не разбивая ее, не прогоняя ее через какую-то самописную функцию
-    """
-    source = dom_news.xpath('.//span[@class="note"]//span[@class="link__text"]/text()')[0]
-
+    
+    source = dom_news.xpath('//span[@class="link__text"]/text()')[0]
+    
     data['name'] = name_corrector(name)
     data['url'] = url_news
     data['date'] = date_time
     data['source'] = source
     save_news(data)
-
-
-
-
 
 
 

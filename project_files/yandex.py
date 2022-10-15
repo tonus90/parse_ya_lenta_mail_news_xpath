@@ -5,14 +5,14 @@ from urllib.parse import urljoin
 import datetime
 from pymongo import MongoClient
 
-header = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0'}
+header = {'User-Agent' : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36'}
 
 url = 'https://yandex.ru/news/'
 response = requests.get(url, headers=header)
 
 dom = html.fromstring(response.text)
-block_top_news = dom.xpath('//div[@class="mg-grid__row mg-grid__row_gap_8 news-top-flexible-stories news-app__top"]')[0]
-items = block_top_news.xpath('.//article')
+block_top_news = dom.xpath('//div')[0]
+items = block_top_news.xpath('.//div[@class="mg-grid__col mg-grid__col_xs_8"] | .//div[@class="mg-grid__col mg-grid__col_xs_4"]')
 print(1)
 
 client = MongoClient('localhost', 27017)
@@ -34,9 +34,7 @@ def get_datetime(time):
     return date_res
 
 def name_corrector(name):
-    a = name.replace(u'\xa0', ' ')
-    print(1)
-    return a
+    return name.replace(u'\xa0', ' ')
 
 
 for item in items:
@@ -44,7 +42,7 @@ for item in items:
     name = item.xpath('.//a/h2/text()')[0]
     url_news = item.xpath('.//a/@href')[0]
     date_time = item.xpath('.//span[@class = "mg-card-source__time"]/text()')[0]
-    source = item.xpath('.//span[@class = "mg-card-source__source"]/a/text()')[0]
+    source = item.xpath('.//span[@class = "mg-favorites-dot__indicator mg-favorites-dot__indicator_size_s"]/a/text()')[0]
 
     data['name'] = name_corrector(name)
     data['url'] = url_news
